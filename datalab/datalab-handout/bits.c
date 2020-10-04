@@ -178,6 +178,8 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
+/*This is taken from the video tutorial. Essentally we are recreating the boolean algebra
+ * That is used for xor but only using the legal operations*/
   return ~((~(~x & y)) & (~(x & ~y)));
 }
 /* 
@@ -187,10 +189,10 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int tmin(void) {
-    int num = 0;
-    return ~num + 1;
+/*The minimum value of a two's complement has a 1 in the first position (sign) and the rest
+ * are zeros. We take a hex number 1 and shift it until that one is in the first position*/
+    return 0x1 << 0x1f;
 }
-//2
 /*
  * isTmax - returns 1 if x is the maximum, two's complement number,
  *     and 0 otherwise 
@@ -199,7 +201,14 @@ int tmin(void) {
  *   Rating: 1
  */
 int isTmax(int x) {
-  return 2;
+/*The goal is x^0x7ffff... But we cannot hardcode that number
+ * So we need to come up with a complex operation
+ * !(x+1) Will handly the -1 case by flipping it to 1.
+ * The basic jist is we want to mask a x+1 with either zero or 1.
+ * Adding that back will give us a number either -1, 0, or 1. We want -1
+ * to be 1 (because that is Tmax) so we not to zero, then flip all values with !
+ * */  
+return !(~(x+ (!(x+1)^(x+1))));
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
@@ -210,7 +219,13 @@ int isTmax(int x) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+/*We start by building the mask of 0xAAAAAAA. Anding with the value of x will
+ * Leave us with all the odd bits that are set.  We then xor this which leaves us
+ * with any bits that are evenly place. Then we logically negate it*/
+
+int mask = (0xAA<<8)+0xAA;
+mask = (mask<<16)+mask;
+return !((x&mask)^mask);
 }
 /* 
  * negate - return -x 
@@ -220,7 +235,8 @@ int allOddBits(int x) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+/*Negates the number then adds one to account for -1 negating to zero*/
+  return ~x+1;
 }
 //3
 /* 
@@ -233,7 +249,8 @@ int negate(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+/*For this we need to do two comparisons. Is x larger than 0x30 and is 0x39 larger than x. Because it is inclusive. change them to 0x2f and 0x3a. If x is larger then a number than 0x30-x is negative. Use the negate (above) and shift 31 places to see the signed bit. If that is one, x is larger. Do twice and and to get the return value*/  
+return ((0x2f + (~x +1)) >> 31 & 1) & ((x + (~0x3a +1)) >> 31 & 1);
 }
 /* 
  * conditional - same as x ? y : z 
@@ -243,7 +260,8 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int conditional(int x, int y, int z) {
-  return 2;
+/*First focus on returning y if x is true. Use ! to put to zero or 1. Then use negate function above to make it -1 or zero. (-1 is all 1s) We then want to and the value of y with -1 or 0. This will either give us 0 or y. We can do the same thing with z. Just only use ! once instead of twice. Now we have y, z, and zero as 2 arguements. We join these toegether using an or so that we only have y or z.*/  
+return (~(!!(x))+1 & y) | (~(!(x))+1 & z);
 }
 /* 
  * isLessOrEqual - if x <= y  then return 1, else return 0 
@@ -253,8 +271,18 @@ int conditional(int x, int y, int z) {
  *   Rating: 3
  */
 int isLessOrEqual(int x, int y) {
-  return 2;
+/*This is very Similar to the ascii one above, but both numbers are given
+ * We also want to use ! to flip the answer. Many changes need to be made to 
+ * Handle the edge case of */  
+
+int tmin, tmax;
+tmin = ~0<<31;
+tmax = ~tmin;
+
+return !! (((x & ~y) | ~(x ^ y) & ~((y & tmax) + ~(x & tmax) + 1)) & tmin);
+
 }
+
 //4
 /* 
  * logicalNeg - implement the ! operator, using all of 
@@ -265,7 +293,11 @@ int isLessOrEqual(int x, int y) {
  *   Rating: 4 
  */
 int logicalNeg(int x) {
-  return 2;
+/*We first make everything positive by turning the signed bit off. The first part of the return statement (everything but the first negation and +1) makes sure the number is not zero. This will place either 0 or -1. Then we do the negation and add one. Which will give us either 0 or 1 */
+
+x = ~x+1;
+return ((x >> 31) | ((~x + 1) >> 31))+1;
+
 }
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
@@ -280,7 +312,38 @@ int logicalNeg(int x) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+/*The first block is for the absolute value of x. Second block rounds x to the nnearest power of two, because we only care about the highest power of 2. Each block (16, 8, 4,2, 1) does the same calculation with a different bit value. We calculate the number of bits that are set on that value, then we remove the set bit. We repeat this for all the values */
+   int counter = 1; //inital 1 for the signed bit
+	int temp;
+    x  = (x & ~(x >> 31)) | ((~x)  & x >> 31); //calculate abs
+
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+
+    temp = x >> 16;
+    counter += (temp << 4) & 16;
+    x = temp | ((temp + ~0) & x);
+
+    temp = x >> 8;
+    counter += (temp << 3) & 8;
+    x = temp | ((temp + ~0) & x);
+
+    temp = x >> 4;
+    counter += (temp << 2) & 4;
+    x = temp | ((temp + ~0) & x);
+
+    temp = x >> 2;
+    counter += (temp << 1) & 2;
+    x = temp | ((temp + ~0) & x);
+
+    temp = x >> 1;
+    counter += temp & 1;
+    x = temp | ((temp + ~0) & x);
+
+    return counter + x;
 }
 //float
 /* 
@@ -295,5 +358,20 @@ int howManyBits(int x) {
  *   Rating: 4
  */
 unsigned floatScale2(unsigned uf) {
-  return 2;
+/*Doubling the number is simple. Just add 1 to the exponent.
+ * The move difficult part is handling all the edge cases. We have 4 cases
+ * 1) Normal. Everything goes smoothly
+ * 2) Argument is zero (or -0) just return uf
+ * 3) Argument is NaN (exponent is all set, Fraction, not zero)
+ * 4) The denormalized numbers. */
+if(uf == 0 || uf == -1<<30){
+return uf;
+}
+if(((uf>>23) & 0xff) == 0xff){
+return uf;
+}
+if(((uf>>23) & 0xff) == 0) {
+return (uf & (1<<31)) | (uf<<1);
+}
+return uf+(1<<23);
 }
