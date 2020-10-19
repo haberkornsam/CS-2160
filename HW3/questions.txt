@@ -1,0 +1,10 @@
+1)
+10 parameters
+
+Registers: rdi, rsi, rd, rcx, r8, r9
+Memory Places: rsp+0x8, rsp+0x10, rsp+0x18, rsp+0x20
+
+2)
+The return address is at rsp+0x28
+
+
