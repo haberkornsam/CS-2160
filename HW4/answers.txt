@@ -1,0 +1,37 @@
+Samuel Haberkorn (shaberk2)
+Homework 4
+Nov 4, 2020
+
+
+
+1)
+There are 68 values between memory locations -300 and -1b4. There simplist way to find the size of the data type is to find the difference between the two lactions then divide by the coordinates of the cell you are looking for. The cells between 0,0 and 5,3 take up 332 bytes. We know there are 16 cells in each row so we do 5 rows * 16 cells per row then add an additional 3 cells for the last row. There are 83 cells. Divide 332 by 83 and each cells is 4 bytes.
+
+a)
+ROW = 12 Found by dividng the starting position (300) by the number of cells and size of cell. 0x300 = 16*ROW*4 or ROW = 0x300/(16*4) 
+b)
+possible type: int
+
+
+2)
+235
+
+3)
+struct S1
+
+4)
+A)
+&A[i][j][k] = X + L((S*T*i)+(T*j)+k)
+B)
+Assembly goes to 65i + 13j +k
+T = 13
+S = 5
+R = 7
+
+
+5)
+variable y is at rdi+180 because we are using movq and y is a long. We know that x must occupy 180 bytes. Then, divide by 4 (the size of an int) and we knoww there are 45 cells. Then A*B = 45. This leaves us with the pairs 1, 45; 3, 15; or 5,9. When the value of t is used it has an address of rsi+8. We know array[B] is in the space so we know B must be 8 or less (1, 3, or 5) All of these are possible because of the byte allignment. Now lets look at the space s[A] uses. This is from rsi+12 - rsi+32. Meaning the maximum size s uses is 20 bytes. Divided by the size of a short we get a max of 10 elements in the array. This gives us the possiblities of (1, 3, 5, or 9) if we compare the posibilities we see that B must be 5 and A must be 9.
+
+A = 9
+B = 5
+
